@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>JARVIS 2.0</title>
+
+<style>
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    min-height: 100vh;
+    background: #02060c;
+    color: #00eaff;
+    font-family: Arial, sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.container {
+    width: 92%;
+    max-width: 520px;
+    text-align: center;
+}
+
+h1 {
+    font-size: 42px;
+    letter-spacing: 8px;
+    margin: 10px 0;
+}
+
+.subtitle {
+    color: #79eaff;
+    font-size: 13px;
+    letter-spacing: 3px;
+}
+
+.core {
+    width: 180px;
+    height: 180px;
+    margin: 35px auto;
+    border-radius: 50%;
+    border: 3px solid #00eaff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow:
+        0 0 20px #00eaff,
+        0 0 60px #006eff,
+        inset 0 0 30px #00eaff;
+    animation: pulse 2s infinite;
+}
+
+.core-inner {
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    background: #00eaff;
+    box-shadow:
+        0 0 20px #00eaff,
+        0 0 60px #006eff;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.07);
+    }
+}
+
+button {
+    width: 190px;
+    padding: 14px;
+    margin: 8px;
+    border-radius: 30px;
+    border: 2px solid #00eaff;
+    background: transparent;
+    color: #00eaff;
+    font-size: 16px;
+    font-weight: bold;
+}
+
+button:active {
+    background: #00eaff;
+    color: #02060c;
+}
+
+#status {
+    margin: 20px 0;
+    padding: 15px;
+    min-height: 50px;
+    border: 1px solid #17465a;
+    border-radius: 12px;
+    color: white;
+}
+
+#chat {
+    text-align: left;
+    max-height: 220px;
+    overflow-y: auto;
+    margin-top: 15px;
+}
+
+.message {
+    padding: 10px;
+    margin: 8px 0;
+    border-radius: 10px;
+    background: #071522;
+}
+
+.you {
+    color: #ffffff;
+}
+
+.jarvis {
+    color: #00eaff;
+}
+
+.small {
+    color: #5da8b8;
+    font-size: 12px;
+    margin-top: 20px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <h1>JARVIS</h1>
+
+    <div class="subtitle">
+        PERSONAL AI ASSISTANT 2.0
+    </div>
+
+    <div class="core">
+        <div class="core-inner"></div>
+    </div>
+
+    <button id="talkButton">🎙️ TALK</button>
+
+    <button id="stopButton">🛑 STOP</button>
+
+    <div id="status">
+        JARVIS is online.
+    </div>
+
+    <div id="chat"></div>
+
+    <div class="small">
+        Voice assistant ready
+    </div>
+
+</div>
+
+<script>
+
+// ================================
+// ELEMENTS
+// ================================
+
+const talkButton =
+    document.getElementById("talkButton");
+
+const stopButton =
+    document.getElementById("stopButton");
+
+const statusText =
+    document.getElementById("status");
+
+const chat =
+    document.getElementById("chat");
+
+
+// ================================
+// SPEECH RECOGNITION
+// ================================
+
+const SpeechRecognition =
+    window.SpeechRecognition ||
+    window.webkitSpeechRecognition;
+
+let recognition = null;
+
+if (!SpeechRecognition) {
+
+    statusText.innerText =
+        "Voice recognition is not supported.";
+
+    talkButton.disabled = true;
+
+} else {
+
+    recognition =
+        new SpeechRecognition();
+
+    recognition.lang = "en-IN";
+
+    recognition.continuous = false;
+
+    recognition.interimResults = false;
+
+
+    // TALK BUTTON
+
+    talkButton.addEventListener(
+        "click",
+        function () {
+
+            try {
+
+                statusText.innerText =
+                    "🎙️ Listening...";
+
+                recognition.start();
+
+            } catch (error) {
+
+                console.log(error);
+
+            }
+
+        }
+    );
+
+
+    // VOICE RESULT
+
+    recognition.onresult =
+        function(event) {
+
+            const command =
+                event.results[0][0]
+                .transcript
+                .toLowerCase()
+                .trim();
+
+            addMessage(
+                "You",
+                command,
+                "you"
+            );
+
+            statusText.innerText =
+                "Processing...";
+
+            processCommand(command);
+
+        };
+
+
+    // END
+
+    recognition.onend =
+        function() {
+
+            console.log(
+                "Recognition ended"
+            );
+
+        };
+
+
+    // ERROR
+
+    recognition.onerror =
+        function(event) {
+
+            statusText.innerText =
+                "Microphone error: " +
+                event.error;
+
+        };
+}
+
+
+// ================================
+// COMMAND PROCESSOR
+// ================================
+
+function processCommand(command) {
+
+
+    // HELLO
+
+    if (
+        command.includes("hello") ||
+        command.includes("hi") ||
+        command.includes("hey")
+    ) {
+
+        speak(
+            "Hello. JARVIS is online."
+        );
+
+    }
+
+
+    // TIME
+
+    else if (
+        command.includes("time")
+    ) {
+
+        const now =
+            new Date();
+
+        const time =
+            now.toLocaleTimeString(
+                "en-IN",
+                {
+                    hour: "numeric",
+                    minute: "2-digit"
+                }
+            );
+
+        speak(
+            "The current time is " +
+            time
+        );
+
+    }
+
+
+    // DATE
+
+    else if (
+        command.includes("date") ||
+        command.includes("today")
+    ) {
+
+        const now =
+            new Date();
+
+        const date =
+            now.toLocaleDateString(
+                "en-IN",
+                {
+                    weekday: "long",
+                    day: "numeric",
+                    month: "long"
+                }
+            );
+
+        speak(
+            "Today is " +
+            date
+        );
+
+    }
+
+
+    // YOUTUBE
+
+    else if (
+        command.includes("youtube")
+    ) {
+
+        speak(
+            "Opening YouTube."
+        );
+
+        setTimeout(
+            function() {
+
+                window.location.href =
+                    "https://www.youtube.com";
+
+            },
+            1000
+        );
+
+    }
+
+
+    // GOOGLE
+
+    else if (
+        command.includes("open google")
+    ) {
+
+        speak(
+            "Opening Google."
+        );
+
+        setTimeout(
+            function() {
+
+                window.location.href =
+                    "https://www.google.com";
+
+            },
+            1000
+        );
+
+    }
+
+
+    // INSTAGRAM
+
+    else if (
+        command.includes("instagram")
+    ) {
+
+        speak(
+            "Opening Instagram."
+        );
+
+        setTimeout(
+            function() {
+
+                window.location.href =
+                    "https://www.instagram.com";
+
+            },
+            1000
+        );
+
+    }
+
+
+    // SEARCH
+
+    else if (
+        command.startsWith("search")
+    ) {
+
+        let query =
+            command
+            .replace("search for", "")
+            .replace("search", "")
+            .trim();
+
+        if (query !== "") {
+
+            speak(
+                "Searching for " +
+                query
+            );
+
+            setTimeout(
+                function() {
+
+                    window.location.href =
+                        "https://www.google.com/search?q=" +
+                        encodeURIComponent(query);
+
+                },
+                1000
+            );
+
+        } else {
+
+            speak(
+                "What should I search for?"
+            );
+
+        }
+
+    }
+
+
+    // STOP
+
+    else if (
+        command.includes("stop")
+    ) {
+
+        stopSpeaking();
+
+    }
+
+
+    // AI QUESTION
+
+    else {
+
+        askAI(command);
+
+    }
+
+}
+
+
+// ================================
+// AI BACKEND CONNECTION
+// ================================
+
+async function askAI(question) {
+
+    statusText.innerText =
+        "🧠 JARVIS is thinking...";
+
+    addMessage(
+        "JARVIS",
+        "Thinking...",
+        "jarvis"
+    );
+
+    try {
+
+        const response =
+            await fetch(
+                "YOUR_BACKEND_URL/chat",
+                {
+                    method: "POST",
+
+                    headers: {
+                        "Content-Type":
+                            "application/json"
+                    },
+
+                    body: JSON.stringify({
+                        message: question
+                    })
+                }
+            );
+
+
+        if (!response.ok) {
+            throw new Error(
+                "Server error"
+            );
+        }
+
+
+        const data =
+            await response.json();
+
+
+        const answer =
+            data.reply ||
+            "I could not generate a response.";
+
+
+        // Remove "Thinking..."
+
+        chat.lastElementChild.remove();
+
+
+        speak(answer);
+
+    }
+
+    catch (error) {
+
+        console.log(error);
+
+        // Remove "Thinking..."
+
+        if (
+            chat.lastElementChild
+        ) {
+            chat.lastElementChild.remove();
+        }
+
+        speak(
+            "My AI connection is not configured yet."
+        );
+
+    }
+
+}
+
+
+// ================================
+// JARVIS SPEAK
+// ================================
+
+function speak(text) {
+
+    statusText.innerText =
+        "JARVIS: " + text;
+
+    addMessage(
+        "JARVIS",
+        text,
+        "jarvis"
+    );
+
+
+    const speech =
+        new SpeechSynthesisUtterance(
+            text
+        );
+
+    speech.lang = "en-IN";
+
+    speech.rate = 0.95;
+
+    speech.pitch = 0.9;
+
+
+    window.speechSynthesis.cancel();
+
+    window.speechSynthesis.speak(
+        speech
+    );
+
+}
+
+
+// ================================
+// STOP SPEAKING
+// ================================
+
+function stopSpeaking() {
+
+    window.speechSynthesis.cancel();
+
+    statusText.innerText =
+        "JARVIS: Speech stopped.";
+
+}
+
+
+// ================================
+// STOP BUTTON
+// ================================
+
+stopButton.addEventListener(
+    "click",
+    function() {
+
+        stopSpeaking();
+
+    }
+);
+
+
+// ================================
+// CHAT MESSAGE
+// ================================
+
+function addMessage(
+    sender,
+    text,
+    className
+) {
+
+    const message =
+        document.createElement("div");
+
+    message.className =
+        "message " +
+        className;
+
+    message.innerHTML =
+        "<strong>" +
+        sender +
+        ":</strong> " +
+        escapeHTML(text);
+
+    chat.appendChild(message);
+
+    chat.scrollTop =
+        chat.scrollHeight;
+
+}
+
+
+// ================================
+// SECURITY
+// ================================
+
+function escapeHTML(text) {
+
+    const div =
+        document.createElement("div");
+
+    div.textContent = text;
+
+    return div.innerHTML;
+
+}
+
+</script>
+
+</body>
+  </html>
