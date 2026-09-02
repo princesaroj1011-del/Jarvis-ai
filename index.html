@@ -509,9 +509,7 @@ async function askAI(question) {
     try {
 
         const response =
-            await fetch(
-                "YOUR_BACKEND_URL/chat",
-                {
+            await fetch("https://jarvis-ai-xxxxx.vercel.app/api/chat", {
                     method: "POST",
 
                     headers: {
