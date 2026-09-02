@@ -394,4 +394,268 @@ function processCommand(command) {
             "jarvis"
         );
 
-       
+        speak(reply);
+
+        setTimeout(function() {
+
+            window.open(
+                "https://www.youtube.com/",
+                "_blank"
+            );
+
+        }, 1000);
+
+        return;
+    }
+
+
+    /* GOOGLE */
+
+    if (
+        text === "google" ||
+        text.includes("open google")
+    ) {
+
+        const reply =
+            "Opening Google.";
+
+        addMessage(
+            "JARVIS",
+            reply,
+            "jarvis"
+        );
+
+        speak(reply);
+
+        setTimeout(function() {
+
+            window.open(
+                "https://www.google.com/",
+                "_blank"
+            );
+
+        }, 1000);
+
+        return;
+    }
+
+
+    /* INSTAGRAM */
+
+    if (text.includes("instagram")) {
+
+        const reply =
+            "Opening Instagram.";
+
+        addMessage(
+            "JARVIS",
+            reply,
+            "jarvis"
+        );
+
+        speak(reply);
+
+        setTimeout(function() {
+
+            window.open(
+                "https://www.instagram.com/",
+                "_blank"
+            );
+
+        }, 1000);
+
+        return;
+    }
+
+
+    /* SEARCH */
+
+    if (text.startsWith("search ")) {
+
+        const search =
+            text.replace("search ", "");
+
+        const reply =
+            "Searching Google for " +
+            search;
+
+        addMessage(
+            "JARVIS",
+            reply,
+            "jarvis"
+        );
+
+        speak(reply);
+
+        setTimeout(function() {
+
+            window.open(
+                "https://www.google.com/search?q=" +
+                encodeURIComponent(search),
+                "_blank"
+            );
+
+        }, 1000);
+
+        return;
+    }
+
+
+    /* STOP */
+
+    if (
+        text === "stop" ||
+        text.includes("stop speaking")
+    ) {
+
+        stopSpeaking();
+
+        return;
+    }
+
+
+    /* AI */
+
+    askAI(command);
+}
+
+
+/* =========================================
+   AI BACKEND
+========================================= */
+
+async function askAI(question) {
+
+    statusText.innerText =
+        "🧠 JARVIS is thinking...";
+
+    addMessage(
+        "JARVIS",
+        "Thinking...",
+        "jarvis"
+    );
+
+
+    try {
+
+        const response =
+            await fetch(
+                BACKEND_URL,
+                {
+                    method: "POST",
+
+                    headers: {
+                        "Content-Type":
+                            "application/json"
+                    },
+
+                    body: JSON.stringify({
+                        message: question
+                    })
+                }
+            );
+
+
+        if (!response.ok) {
+
+            throw new Error(
+                "Backend returned " +
+                response.status
+            );
+        }
+
+
+        const data =
+            await response.json();
+
+
+        const reply =
+            data.reply ||
+            "I could not understand the AI response.";
+
+
+        /* Remove Thinking message */
+
+        const messages =
+            chat.querySelectorAll(
+                ".message"
+            );
+
+        if (messages.length > 0) {
+
+            const last =
+                messages[messages.length - 1];
+
+            if (
+                last.innerText.includes(
+                    "Thinking..."
+                )
+            ) {
+                last.remove();
+            }
+        }
+
+
+        addMessage(
+            "JARVIS",
+            reply,
+            "jarvis"
+        );
+
+
+        speak(reply);
+
+
+        statusText.innerText =
+            "🟢 JARVIS is online";
+
+
+    } catch (error) {
+
+        console.error(
+            "AI Error:",
+            error
+        );
+
+
+        const messages =
+            chat.querySelectorAll(
+                ".message"
+            );
+
+        if (messages.length > 0) {
+
+            const last =
+                messages[messages.length - 1];
+
+            if (
+                last.innerText.includes(
+                    "Thinking..."
+                )
+            ) {
+                last.remove();
+            }
+        }
+
+
+        const reply =
+            "I cannot connect to my AI brain right now. Please check the Vercel backend.";
+
+        addMessage(
+            "JARVIS",
+            reply,
+            "jarvis"
+        );
+
+        speak(reply);
+
+
+        statusText.innerText =
+            "🔴 AI connection error";
+    }
+}
+
+</script>
+
+</body>
+</html>
